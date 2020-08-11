@@ -293,6 +293,8 @@ static void connect_report(nsock_iod nsi)
     nsock_iod_get_communication_info(nsi, NULL, NULL, NULL, &peer.sockaddr,
                                      sizeof(peer.storage));
     if (o.verbose) {
+#define connect_report_peer_str (o.proxytype ? o.target : inet_socktop(&peer))
+#define connect_report_peer_port (o.proxytype ? o.portno : nsock_iod_get_peerport(nsi))
 #ifdef HAVE_OPENSSL
         if (nsock_iod_check_ssl(nsi)) {
             X509 *cert;
@@ -300,8 +302,8 @@ static void connect_report(nsock_iod nsi)
             char digest_buf[SHA1_STRING_LENGTH + 1];
             char *fp;
 
-            loguser("SSL connection to %s:%d.", inet_socktop(&peer),
-                    nsock_iod_get_peerport(nsi));
+            loguser("SSL connection to %s:%d.", connect_report_peer_str,
+                    connect_report_peer_port);
 
             cert = SSL_get_peer_certificate((SSL *)nsock_iod_get_ssl(nsi));
             ncat_assert(cert != NULL);
@@ -327,8 +329,13 @@ static void connect_report(nsock_iod nsi)
                 loguser("Connected to %s.\n", peer.un.sun_path);
             else
 #endif
-                loguser("Connected to %s:%d.\n", inet_socktop(&peer),
-                        nsock_iod_get_peerport(nsi));
+#ifdef HAVE_LINUX_VM_SOCKETS_H
+            if (peer.sockaddr.sa_family == AF_VSOCK)
+                loguser("Connection to %u.\n", peer.vm.svm_cid);
+            else
+#endif
+                loguser("Connected to %s:%d.\n", connect_report_peer_str,
+                        connect_report_peer_port);
         }
 #else
 #if HAVE_SYS_UN_H
@@ -336,8 +343,13 @@ static void connect_report(nsock_iod nsi)
             loguser("Connected to %s.\n", peer.un.sun_path);
         else
 #endif
-            loguser("Connected to %s:%d.\n", inet_socktop(&peer),
-                    nsock_iod_get_peerport(nsi));
+#ifdef HAVE_LINUX_VM_SOCKETS_H
+        if (peer.sockaddr.sa_family == AF_VSOCK)
+            loguser("Connection to %u.\n", peer.vm.svm_cid);
+        else
+#endif
+            loguser("Connected to %s:%d.\n", connect_report_peer_str,
+                    connect_report_peer_port);
 #endif
     }
 }
@@ -1116,12 +1128,15 @@ int ncat_connect(void)
         /* Once the proxy negotiation is done, Nsock takes control of the
            socket. */
         cs.sock_nsi = nsock_iod_new2(mypool, connect_socket, NULL);
+        nsock_iod_set_hostname(cs.sock_nsi, o.target);
+        if (o.ssl)
+        {
+            nsock_reconnect_ssl(mypool, cs.sock_nsi, connect_handler, o.conntimeout, NULL, NULL);
+        }
 
         /* Create IOD for nsp->stdin */
         if ((cs.stdin_nsi = nsock_iod_new2(mypool, 0, NULL)) == NULL)
             bye("Failed to create stdin nsiod.");
-
-        post_connect(mypool, cs.sock_nsi);
     }
 
     /* connect */

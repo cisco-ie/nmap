@@ -1,5 +1,74 @@
 #Nmap Changelog ($Id$); -*-text-*-
 
+o [NSE][GH#2091] Parsing of AFP FPGetFileDirParms and
+  FPEnumerateExt2FPEnumerateExt2 responses was not working correctly [nnposter]
+
+o [NSE][GH#2089] Eliminated false positives in script http-shellshock caused by
+  simple reflection of HTTP request data [Anders Kaseorg]
+
+o [NSE][GH#1473] SNMP scripts are now enabled on non-standard ports where SNMP
+  has been detected [usd-markus, nnposter]
+
+o [NSE][GH#2084] MQTT library was using incorrect position when parsing
+  received responses [tatulea]
+
+o [NSE][GH#2086] IPMI library was using incorrect position when parsing
+  received responses [Star Salzman]
+
+o [NSE][GH#2086] Scripts ipmi-brute and deluge-rpc-brute were not capturing
+  successfully brute-forced credentials [Star Salzman]
+
+o Allow resuming IPv6 scans with --resume. The address parsing was assuming IPv4
+  addresses, leading to "Unable to parse ip" error. In a related fix, MAC addresses
+  will not be parsed as IP addresses when resuming from XML. [Daniel Miller]
+
+o [GH#1622][GH#2068] Fix reverse-DNS handling of PTR records that are not lowercase.
+  Nmap was failing to identify reverse-DNS names when the DNS server delivered
+  them like ".IN-ADDR.ARPA". [Lucas Nussbaum, Richard Schütz, Daniel Miller]
+
+o [NSE][GH#1999][GH#2005] IKE library was not properly populating the protocol
+  number in aggressive mode requests. [luc-x41]
+
+o [GH#1963] Added service fingerprinting for MySQL 8.x, Microsoft SQL
+  Server 2019, MariaDB, and Crate.io CrateDB. Updated PostreSQL coverage and
+  added specific detection of recent versions running in Docker. [Tom Sellers]
+
+o [NSE] New script uptime-agent-info collects system information from an Idera
+  Uptime Infrastructure Monitor agent. [Daniel Miller]
+
+o [NSE] New outlib library will consolidate functions related to NSE output,
+  both string formatting conventions and structured output. [Daniel Miller]
+
+o New XML output "hosthint" tag emitted during host discovery when a target is
+  found to be up. This gives earlier notification than waiting for the
+  hostgroup to finish all scan phases. [Paul Miseiko]
+
+o [GH#917] New UDP payloads for GPRS Tunneling Protocol (GTP) on ports 2123,
+  2152, and 3386. [Guillaume Teissier]
+
+o [NSE][GH#1825] SSH scripts now run on several ports likely to be SSH based on
+  empirical data from Shodan.io, as well as the netconf-ssh service.
+  [Lim Shi Min Jonathan, Daniel Miller]
+
+o [Zenmap][GH#1777] Stop creating a debugging output file 'tmp.txt' on the
+  desktop in macOS. [Roland Linder]
+
+o [Nping] Address build failure under libc++ due to "using namespace std;" in
+  several headers, resulting in conflicting definitions of bind(). Reported by
+  StormBytePP and Rosen Penev. [Daniel Miller]
+
+o [Ncat][GH#1868] Fix a fatal error when connecting to a Linux VM socket with
+  verbose output enabled. [Stefano Garzarella]
+
+o [Ncat][GH#2060] Proxy credentials can be alternatively passed onto Ncat by
+  setting environment variable NCAT_PROXY_AUTH, which reduces the risk of the
+  credentials getting captured in process logs. [nnposter]
+
+o [NSE][GH#1723] Fixed a crash on Windows when processing a GZIP-encoded HTTP
+  body. [Daniel Miller]
+
+o Upgrade libpcap to 1.9.1, which addresses several CVE vulnerabilities.
+
 o Upgrade libssh2 to 1.9.0, fixing compilation with OpenSSL 1.1.0 API.
 
 o [GH#1717][GH#1718] Processing of IP address CIDR blocks was not working
@@ -9,6 +78,55 @@ o [Windows] Add support for the new loopback behavior in Npcap 0.9983. This
   enables Nmap to scan localhost on Windows without needing the Npcap Loopback
   Adapter to be installed, which was a source of problems for some users.
   [Daniel Miller]
+
+o [NSE] MS SQL library has improved version resolution, from service pack level
+  to individual cumulative updates [nnposter]
+
+o [NSE][GH#2077] With increased verbosity, script http-default-accounts now
+  reports matched target fingerprints even if no default credentials were found
+  [nnposter]
+
+o [NSE][GH#2063] IPP request object conversion to string was not working
+  correctly [nnposter]
+
+o [NSE][GH#2063] IPP response parser was not correctly processing
+  end-of-attributes-tag [nnposter]
+
+o [NSE] Script cups-info was failing due to erroneous double-decoding
+  of the IPP printer status [nnposter]
+
+o [NSE][GH#2010] Oracle TNS parser was incorrectly unmarshalling DALC byte
+  arrays [nnposter]
+
+o [NSE] The password hashing function for Oracle 10g was not working correctly
+  for non-alphanumeric characters [nnposter]
+
+o [NSE] Virtual host probing list, vhosts-full.lst, was missing numerous
+  entries present in vhosts-default.lst [nnposter]
+
+o [NSE][GH#1931][GH#1932] Script http-grep was not correctly calculating Luhn
+  checksum [Colleen Li, nnposter]
+
+o [NSE][GH#1838] Scripts dhcp-discover and broadcast-dhcp-discover now support
+  new argument "mac" to force a specific client MAC address [nnposter]
+
+o [NSE] Code improvements in RPC Dump, benefitting NFS-related scripts
+  [nnposter]
+
+o [NSE] RPC code was using incorrect port range, which was causing some calls,
+  such as NFS mountd, to fail intermittently [nnposter]
+
+o [NSE][GH#1876] XML output from script ssl-cert now includes RSA key modulus
+  and exponent [nnposter]
+
+o [NSE][GH#1837] Nmap no longer crashes when SMB scripts, such as smb-ls, call
+  smb.find_files [nnposter]
+
+o [NSE][GH#1802] The MongoDB library was causing errors when assembling protocol
+  payloads. [nnposter]
+
+o [NSE][GH#1781][GH#1796] The RTSP library was not correctly generating request
+  strings. [nnposter]
 
 o [NSE][GH#1706] VNC handshakes were failing with insert position out of bounds
   error. [nnposter]
@@ -22,6 +140,9 @@ o [NSE][GH#1720] Unmarshalling functions in library msrpctypes were attempting
 o [NSE][GH#1720] Functions lsa_lookupnames2 and lsa_lookupsids2 in library
   msrpc were incorrectly referencing function strjoin when called with debug
   level 2 or higher. [Ivan Ivanov]
+
+o [NSE][GH#1755] Added a default account fingerprint for Tomcat Host Manager.
+  [Clément Notin]
 
 o [NSE][GH#1476][GH#1707] A MS-SMB spec non-compliance in Samba was causing
   protocol negotiation to fail with data string too short error.
@@ -45,6 +166,12 @@ o [NSE][GH#1665] The HTTP library no longer crashes when code requests digest
 
 o [NSE] Fixed a bug in http-wordpress-users.nse that could cause
   extraneous output to be captured as part of a username. [Duarte Silva]
+
+o Added a UDP payload for STUN (Session Traversal Utilities for NAT).
+  [David Fifield]
+
+o [NSE] Fixed an off-by-one bug in the stun.lua library that prevented
+  parsing a server response. [David Fifield]
 
 Nmap 7.80 [2019-08-10]
 
@@ -99,10 +226,17 @@ o [GH#1396] Fixed the Windows installer, which would replace the entire PATH
   fixed by using the "large strings" build of NSIS to build the new installer.
   [Daniel Miller]
 
+o Replaced the addrset matching code that is used by --exclude and
+  --excludefile with a much faster implementation using a radix tree (trie).
+  https://seclists.org/nmap-dev/2018/q4/13
+
 o [GH#1291][GH#34][GH#1339] Use pcap_create instead of pcap_live_open in
   Nmap, and set immediate mode on the pcap descriptor. This solves packet
   loss problems on Linux and may improve performance on other platforms.
   [Daniel Cater, Mike Pontillo, Daniel Miller]
+
+o [NSE][GH#1330] Fixed an infinite loop in tls-alpn when the server forces a
+  particular protocol. [Daniel Miller]
 
 o [NSE] Collected utility functions for string processing into a new
   library, stringaux.lua. [Daniel Miller]

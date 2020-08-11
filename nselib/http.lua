@@ -187,6 +187,12 @@ local function get_host_field(host, port, scheme)
   if host_header then return host_header end
   -- If there's no host, we can't invent a name.
   if not host then return nil end
+  -- If there's no port, just return hostname.
+  if not port then return stdnse.get_hostname(host) end
+  if type(port) == "string" then
+    port = tonumber(port)
+    assert(port, "Invalid port: not a number or table")
+  end
   if type(port) == "number" then
     port = {number=port, protocol="tcp"}
   end
@@ -1787,6 +1793,7 @@ function get_url( u, options )
   if(not(validate_options(options))) then
     return http_error("Options failed to validate.")
   end
+  options = options or {}
   local parsed = url.parse( u )
   local port = {}
 
